@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Film } from "lucide-react";
-import { storage } from "@/utils/storage";
+import { Users } from "lucide-react";
+import { staffAuthApi } from "@/services/api";
 
-const Auth = () => {
+const StaffLogin = () => {
   const navigate = useNavigate();
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
@@ -19,37 +19,17 @@ const Auth = () => {
     setError("");
 
     try {
-      // Try login with username field (could be email or username)
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: loginForm.username,
-          username: loginForm.username,
-          password: loginForm.password,
-        }),
+      await staffAuthApi.login({
+        username: loginForm.username,
+        password: loginForm.password,
       });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data = await response.json();
-
-      // Store token
-      if (data.token) {
-        storage.setAuthToken(data.token);
-        storage.setIsAuthenticated(true);
-      }
-
-      // Check if it's staff or admin based on roles array
-      if (data.user?.roles?.includes('staff')) {
-        navigate("/staff", { replace: true });
-      } else {
-        navigate("/home", { replace: true });
-      }
+      navigate("/staff/dashboard", { replace: true });
     } catch (err) {
-      setError("Login failed. Please check your credentials.");
+      if (err instanceof Error) {
+        setError(err.message || "Login failed. Please check your credentials.");
+      } else {
+        setError("Login failed. Please check your credentials.");
+      }
       setIsLoading(false);
     }
   };
@@ -59,16 +39,16 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
           <div className="bg-primary/10 p-2 rounded-lg">
-            <Film className="h-8 w-8 text-primary" />
+            <Users className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold">Fair Film Vision</h1>
+          <h1 className="text-2xl font-bold">Staff Portal</h1>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Welcome back</CardTitle>
+            <CardTitle>Staff Login</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              Enter your staff credentials to access the booking system
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -79,11 +59,11 @@ const Auth = () => {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="username">Email / Username</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="you@example.com or username"
+                  placeholder="staff123"
                   value={loginForm.username}
                   onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
                   required
@@ -113,4 +93,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default StaffLogin;

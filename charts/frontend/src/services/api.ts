@@ -8,6 +8,10 @@ import type {
   Analytics,
   LoginCredentials,
   AuthResponse,
+  StaffLoginCredentials,
+  StaffAuthResponse,
+  BookingEntry,
+  CreateBookingInput,
 } from '@/types';
 import { storage } from '@/utils/storage';
 
@@ -166,4 +170,50 @@ export const authApi = {
       storage.clearAuth();
     }
   },
+};
+
+// Staff API
+export const staffAuthApi = {
+  login: async (credentials: StaffLoginCredentials) => {
+    const response = await apiFetch<StaffAuthResponse>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+
+    // Store staff token
+    if (response.token) {
+      storage.setAuthToken(response.token);
+      storage.setIsAuthenticated(true);
+    }
+
+    return response;
+  },
+
+  logout: async () => {
+    storage.clearAuth();
+  },
+};
+
+export const bookingApi = {
+  create: (booking: CreateBookingInput) =>
+    apiFetch<BookingEntry>('/api/bookings', {
+      method: 'POST',
+      body: JSON.stringify(booking),
+    }),
+
+  getAll: () => apiFetch<BookingEntry[]>('/api/bookings'),
+
+  getById: (id: string) => apiFetch<BookingEntry>(`/api/bookings/${id}`),
+};
+
+export const showsApi = {
+  create: (show: any) =>
+    apiFetch<any>('/api/shows', {
+      method: 'POST',
+      body: JSON.stringify(show),
+    }),
+
+  getAll: () => apiFetch<any[]>('/api/shows'),
+
+  getById: (id: string) => apiFetch<any>(`/api/shows/${id}`),
 };

@@ -17,14 +17,8 @@ interface Theater {
 const DistributorDetails = () => {
   const { id, distributorId } = useParams();
   const navigate = useNavigate();
-  
-  const [theaters, setTheaters] = useState<Theater[]>([
-    {
-      id: "1",
-      name: "PVR Phoenix Mall",
-      region: "Mumbai - West",
-    },
-  ]);
+
+  const [theaters, setTheaters] = useState<Theater[]>([]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
