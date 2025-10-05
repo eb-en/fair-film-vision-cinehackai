@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -X GET \"https://lib-discussion-forty-evans.trycloudflare.com/bms/search-theatres?q=reva\")",
+      "Bash(git checkout:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
