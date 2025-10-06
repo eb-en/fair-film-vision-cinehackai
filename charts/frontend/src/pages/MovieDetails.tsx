@@ -57,17 +57,17 @@ const MovieDetails = () => {
           Back to Dashboard
         </Button>
 
-        <div className="flex items-center justify-between mb-8 animate-slide-up">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 animate-slide-up">
           <div>
-            <h1 className="text-3xl font-bold mb-1">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1">
               {movie?.name || "Movie"}
             </h1>
-            <p className="text-muted-foreground">Manage distributors for this movie</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Manage distributors for this movie</p>
           </div>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Distributor
               </Button>

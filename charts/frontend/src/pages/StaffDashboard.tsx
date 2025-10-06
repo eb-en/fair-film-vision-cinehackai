@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import type { CreateBookingInput, TheaterSearchResult, TicketType } from "@/type
 const StaffDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     movieId: "",
@@ -23,7 +24,7 @@ const StaffDashboard = () => {
     theaterName: "",
     theaterData: {} as Record<string, any>,
     screenName: "",
-    showTiming: "",
+    showDateTime: new Date().toISOString().slice(0, 16), // Default to now in YYYY-MM-DDTHH:mm format
   });
 
   // Fetch movies
@@ -32,7 +33,6 @@ const StaffDashboard = () => {
     queryFn: movieApi.getAll,
   });
 
-  console.log(movies);
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([
     { type: "", price: 0, quantity: 0, totalPrice: 0 }
   ]);
@@ -116,7 +116,17 @@ const StaffDashboard = () => {
   }, [showTheaterResults]);
 
   const handleTheaterSelect = (theater: TheaterSearchResult) => {
-    setFormData({ ...formData, theaterName: theater.title });
+    setFormData({
+      ...formData,
+      theaterName: theater.title,
+      theaterData: {
+        id: theater.id,
+        title: theater.title,
+        region: theater.region,
+        slug: theater.slug,
+        groupTitle: theater.groupTitle,
+      }
+    });
     setTheaterSearchQuery("");
     setShowTheaterResults(false);
     setHighlightedIndex(-1);
@@ -190,10 +200,8 @@ const StaffDashboard = () => {
     const { totalTickets, totalAmount } = calculateTotals();
 
     try {
-      // Convert show timing to timestamp
-      const today = new Date();
-      const [hours, minutes] = formData.showTiming.split(':');
-      const timestamp = new Date(today.getFullYear(), today.getMonth(), today.getDate(), parseInt(hours), parseInt(minutes));
+      // Convert show datetime to timestamp
+      const timestamp = new Date(formData.showDateTime);
 
       // Convert ticket types to seat categories
       const seatCategories = ticketTypes.map(ticket => ({
@@ -213,6 +221,10 @@ const StaffDashboard = () => {
 
       await showsApi.create(showData);
 
+      // Invalidate analytics cache to refresh dashboard
+      queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['shows'] });
+
       toast({
         title: "Show Recorded",
         description: `Successfully recorded ${totalTickets} tickets for ${formData.theaterName} (₹${totalAmount})`,
@@ -225,7 +237,7 @@ const StaffDashboard = () => {
         theaterName: "",
         theaterData: {},
         screenName: "",
-        showTiming: "",
+        showDateTime: new Date().toISOString().slice(0, 16), // Reset to current date/time
       });
       setTicketTypes([{ type: "", price: 0, quantity: 0, totalPrice: 0 }]);
       setTheaterSearchQuery("");
@@ -355,7 +367,7 @@ const StaffDashboard = () => {
                 </div>
               </div>
 
-              {/* Screen Name & Show Timing - Side by side on larger screens */}
+              {/* Screen Name & Show Date/Time - Side by side */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="screenName">Screen Name</Label>
@@ -370,12 +382,12 @@ const StaffDashboard = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="showTiming">Show Timing</Label>
+                  <Label htmlFor="showDateTime">Show Date & Time</Label>
                   <Input
-                    id="showTiming"
-                    type="time"
-                    value={formData.showTiming}
-                    onChange={(e) => setFormData({ ...formData, showTiming: e.target.value })}
+                    id="showDateTime"
+                    type="datetime-local"
+                    value={formData.showDateTime}
+                    onChange={(e) => setFormData({ ...formData, showDateTime: e.target.value })}
                     required
                     disabled={isSubmitting}
                   />
@@ -497,12 +509,6 @@ const StaffDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* PWA Install Prompt */}
-        <div className="mt-4 p-3 sm:p-4 bg-muted rounded-lg text-center">
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            💡 Tip: Install this app on your device for quick access
-          </p>
-        </div>
       </div>
     </div>
   );
