@@ -13,6 +13,17 @@ We built a platform, where all the distribution channels and sales can be monito
 
 ---
 
+#### Cloning
+```
+git clone https://github.com/eb-en/fair-film-vision-cinehackai
 
+cd charts/
+
+cd frontend/
+yarn install
+
+cd ../backend/
+yarn install
+```
 
 
